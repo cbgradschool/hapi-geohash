@@ -1,14 +1,14 @@
-import { Plugin, Server } from "@hapi/hapi";
-import Pkg from "../package.json";
+import { Plugin, Server } from '@hapi/hapi';
+import Pkg from '../package.json';
+import Geohash from './geohash';
 
-const implementation: Plugin = {
-  plugin: {
-    pkg: Pkg,
-    register(server: Server) {
-      server.decorate("request", "geohash", () => {});
+export default {
+    plugin: {
+        pkg: Pkg,
+        register(server: Server, options: any) {
+            server.decorate('server', 'geohash', () => new Geohash(options));
+        },
     },
-  },
-  core: true,
 };
 
-export default implementation;
+export const implementation = Geohash;
