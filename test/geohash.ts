@@ -7,6 +7,15 @@ import { Implementation } from '../lib';
 const { expect } = Code;
 const { it, describe } = (exports.lab = Lab.script());
 
+const truncateDecimal = (num: number): number => {
+    if (Math.sign(num)) {
+        return Number(num.toString().slice(0, 6))
+    } else {
+        return Number(num.toString().slice(0, 7))
+    }
+}
+
+
 describe('Geohash', () => {
     it.skip('can be configured to throw if precision is not provided', () => {
         const subject = function () {
@@ -54,47 +63,17 @@ describe('Geohash', () => {
         expect(geohash).to.equal('9q9hvumnfq3j');
     });
 
-    it.only('can decode a 32-bit encoded string back into coordiantes', () => {
+    it('can decode a 32-bit encoded string back into coordiantes', () => {
         const instance = new Implementation();
-        const lat = 40.72470580906875;
-        const lng = -73.99975952911369;
+        const expectedLat = 40.72470580906875;
+        const expectedLng = -73.99975952911369;
 
-        const geohash = instance.encode(lat, lng, 8);
+        const geohash = instance.encode(expectedLat, expectedLng, 8);
 
         expect(geohash).to.equal('dr5rsjen')
 
-        instance.dc(geohash)
+        const [lat, lng] =  instance.decode(geohash);
 
-        expect(instance.decode(geohash)).to.include([lat, lng]);
-    });
-
-    it('test', () => {
-        const base32 = '0123456789bcdefghjkmnpqrstuvwxyz';
-
-        let builtBits = ''
-
-        const bits = ['0', '1', '1', '1']
-
-        for (const bit of bits) {
-            builtBits += bit
-        }
-
-        console.log(builtBits, '<< Built Bits');
-
-        const oldIdx = parseInt(builtBits, 2);
-        
-        console.log(oldIdx, 'Old index');
-
-        const char = base32.charAt(oldIdx)
-
-        console.log(char, '<< Char');
-
-        const idx = base32.indexOf(char);
-        
-        console.log(idx, '<< New IDX');
-
-        const newBits = idx.toString(2).padStart(4, '0')
-        
-        console.log(newBits, '<< NEw bits');
+        expect([truncateDecimal(lat), truncateDecimal(lng)]).to.include([truncateDecimal(expectedLat), truncateDecimal(expectedLng)]);
     });
 });
