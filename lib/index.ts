@@ -11,4 +11,4 @@ export default {
     },
 };
 
-export const implementation = Geohash;
+export const Implementation = Geohash;
