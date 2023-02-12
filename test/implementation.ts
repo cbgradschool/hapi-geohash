@@ -1,7 +1,7 @@
 import Code from '@hapi/code';
 import Lab from '@hapi/lab';
 import Hapi from '@hapi/hapi';
-import GeohashPlugin, { Implementation } from '../lib';
+import GeohashPlugin, {  Geohash } from '../lib';
 import { PluginRequest } from '../lib/index.d';
 
 const { expect } = Code;
@@ -31,6 +31,6 @@ describe('Implementation', () => {
   });
 
   it('can be used as a commonJs module', () => {
-    expect(Implementation).to.be.a.function();
+    expect(Geohash).to.be.a.function();
   });
 });

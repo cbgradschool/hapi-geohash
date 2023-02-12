@@ -1,5 +1,5 @@
 {
-  "exclude": ["node_modules", "test"],
+  "exclude": ["node_modules"],
   "compilerOptions": {
     /* Language and Environment */
     "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
@@ -7,7 +7,6 @@
 
     /* Modules */
     "module": "commonjs",                                /* Specify what module code is generated. */
-    "rootDir": "lib",                                    /* Specify the root folder within your source files. */
     "resolveJsonModule": true,                           /* Enable importing .json files. */
 
     /* JavaScript Support */

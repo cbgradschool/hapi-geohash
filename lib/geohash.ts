@@ -2,33 +2,28 @@ import joi from 'joi';
 
 const LAT_MIN = -90;
 const LAT_MAX = 90;
-const LNG_MIN = -180;
-const LNG_MAX = 180;
+const LON_MIN = -180;
+const LON_MAX = 180;
 
 interface BoundingBox {
   ne: {
     lat: number,
-    lng: number
+    lon: number
   }
   sw: {
     lat: number,
-    lng: number
+    lon: number
   }
 }
 
 class Geohash {
-  private base32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+  private static base32 = '0123456789bcdefghjkmnpqrstuvwxyz';
 
-  readonly precisionRequired: boolean;
-
-  constructor(precisionRequired: boolean = true) {
-    this.precisionRequired = precisionRequired;
-  }
-
-  public encode(lat: number, lng: number, precision?: number): string {
-    if (precision === undefined && this.precisionRequired) {
-      throw new Error('precision is required');
-    }
+  static encode(lat: number, lon: number, hashPrecision: number): string {
+    const precision = joi.attempt(
+      hashPrecision,
+      joi.number().min(1).max(12)
+    )
 
     const latitude = joi.attempt(
       lat,
@@ -36,8 +31,8 @@ class Geohash {
     );
 
     const longitude = joi.attempt(
-      lng,
-      joi.number().min(LNG_MIN).max(LNG_MAX).required()
+      lon,
+      joi.number().min(LON_MIN).max(LON_MAX).required()
     );
 
     let geohash = '';
@@ -87,7 +82,7 @@ class Geohash {
 
       if (bits.length === 5) { // Question: why 5 bits
 
-        geohash += this.base32.charAt(parseInt(bits, 2));
+        geohash += Geohash.base32.charAt(parseInt(bits, 2));
 
         bits = '';
       }
@@ -98,7 +93,7 @@ class Geohash {
     return geohash;
   }
 
-  public decode(geohash: string): any {
+  static decode(geohash: string): any {
     let iteration = 0;
     let latMin = -90;
     let latMax = 90;
@@ -108,7 +103,7 @@ class Geohash {
     for (let index = 0; index < geohash.length; index += 1) {
       const char = geohash.charAt(index);
 
-      const idx = this.base32.indexOf(char);
+      const idx = Geohash.base32.indexOf(char);
 
       const bits = idx.toString(2).padStart(5, '0')
 
@@ -138,8 +133,8 @@ class Geohash {
     }
 
     return Geohash.center({
-      sw: { lat: latMin, lng: lonMin },
-      ne: { lat: latMax, lng: lonMax },
+      sw: { lat: latMin, lon: lonMin },
+      ne: { lat: latMax, lon: lonMax },
     });
   }
 
@@ -147,7 +142,7 @@ class Geohash {
     const { sw, ne } = bounds
 
     const lat = (sw.lat + ne.lat) / 2;
-    const lon = (sw.lng + ne.lng) / 2;
+    const lon = (sw.lon + ne.lon) / 2;
 
     return [lat, lon]
   }
