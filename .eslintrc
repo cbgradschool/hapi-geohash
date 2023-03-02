@@ -7,10 +7,13 @@
   ],
   "extends": [
     "airbnb-base",
-    "airbnb-typescript/base"
+    "airbnb-typescript/base",
     "prettier"
   ],
+  "rules": {
+    "import/no-import-module-exports": "off"
+  },
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.eslint.json"
   }
 }
