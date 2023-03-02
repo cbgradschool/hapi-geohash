@@ -20,7 +20,7 @@ describe('Geohash', () => {
 
   it('throws an exception if an invalid latitude is provided', () => {
     function subject() {
-      Geohash.encode(2000, 45.67, precision);
+      Geohash.encode(2000, 45.67, 12);
     };
 
     expect(subject).to.throw(
@@ -72,5 +72,75 @@ describe('Geohash', () => {
     const [lat, lon] = Geohash.decode(geohash);
 
     expect([toFixedNoRound(lat, 3), toFixedNoRound(lon, 3)]).to.include([toFixedNoRound(expectedLat, 3), toFixedNoRound(expectedLon, 3)]);
+  })
+
+  it('can return the north, east, south, west, northeast, southwest, northwest, southeast neighbours of a geohash', async () => {
+    const expectedLat = 40.7247058090;
+
+    const expectedLon = -73.9997595291;
+
+    const geohash = Geohash.encode(expectedLat, expectedLon, 8);
+
+    const neighbours = Geohash.neighboursOf(geohash)
+
+    expect(neighbours).to.equal({
+      n: 'dr5rsjep',
+      ne: 'dr5rsjer',
+      e: 'dr5rsjeq',
+      se: 'dr5rsjem',
+      s: 'dr5rsjej',
+      sw: 'dr5rsjdv',
+      w: 'dr5rsjdy',
+      nw: 'dr5rsjdz'
+    })
+  })
+
+  it('will lowercase the passed in geohash argument', async () => {
+    const expectedLat = 40.7247058090;
+
+    const expectedLon = -73.9997595291;
+
+    const geohash = Geohash.encode(expectedLat, expectedLon, 8);
+
+    const neighbours = Geohash.neighboursOf(geohash)
+
+    expect(neighbours).to.equal({
+      n: 'dr5rsjep',
+      ne: 'dr5rsjer',
+      e: 'dr5rsjeq',
+      se: 'dr5rsjem',
+      s: 'dr5rsjej',
+      sw: 'dr5rsjdv',
+      w: 'dr5rsjdy',
+      nw: 'dr5rsjdz'
+    })
+  })
+
+  it('will throw if passed an invalid direction', async () => {
+    const expectedLat = 40.7247058090;
+
+    const expectedLon = -73.9997595291;
+
+    const geohash = Geohash.encode(expectedLat, expectedLon, 8);
+
+    const subject = () => {
+      Geohash.adjacent(geohash, 'norfnorf')
+    };
+
+    expect(subject).to.throw(
+      ValidationError,
+      '"value" must be one of [n, e, s, w]'
+    )
+  })
+
+  it('will throw if passed an empty geohash string', async () => {
+    const subject = () => {
+      Geohash.neighboursOf('')
+    };
+
+    expect(subject).to.throw(
+      ValidationError,
+      '"value" is not allowed to be empty'
+    )
   })
 });

@@ -16,6 +16,17 @@ interface BoundingBox {
   }
 }
 
+interface GeohashNeighbours {
+  n: string,
+  ne: string,
+  e: string,
+  se: string,
+  s: string,
+  sw: string,
+  w: string,
+  nw: string,
+}
+
 class Geohash {
   private static base32 = '0123456789bcdefghjkmnpqrstuvwxyz';
 
@@ -56,11 +67,11 @@ class Geohash {
         const mid = (lonMin + lonMax) / 2;
 
         if (longitude >= mid) {
-          bits += '1'; // East of midpoint
+          bits += '1'; // East of Prime Meridian (+)
 
           lonMin = mid;
         } else {
-          bits += '0'; // West of midpoint
+          bits += '0'; // West of Prime Meridain (-)
 
           lonMax = mid;
         }
@@ -70,18 +81,17 @@ class Geohash {
         const mid = (latMin + latMax) / 2;
 
         if (latitude >= mid) {
-          bits += '1'; // North of midpoint
+          bits += '1'; // North of Equator (+)
 
           latMin = mid;
         } else {
-          bits += '0'; // South of midpoint
+          bits += '0'; // South of Equator (-)
 
           latMax = mid;
         }
       }
 
       if (bits.length === 5) { // Question: why 5 bits
-
         geohash += Geohash.base32.charAt(parseInt(bits, 2));
 
         bits = '';
@@ -145,6 +155,63 @@ class Geohash {
     const lon = (sw.lon + ne.lon) / 2;
 
     return [lat, lon]
+  }
+
+  static adjacent(geohashArg: string, directionArg: string) {
+    // based on https://github.com/chrisveness/latlon-geohash/blob/master/latlon-geohash.js
+    const geohash = joi.attempt(
+      geohashArg,
+      joi.string().lowercase()
+    );
+    const direction = joi.attempt(
+      directionArg,
+      joi.string().lowercase().valid('n', 'e', 's', 'w')
+    );
+
+    const neighbour: { [key: string]: string[] } = {
+      n: ['p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx'],
+      s: ['14365h7k9dcfesgujnmqp0r2twvyx8zb', '238967debc01fg45kmstqrwxuvhjyznp'],
+      e: ['bc01fg45238967deuvhjyznpkmstqrwx', 'p0r21436x8zb9dcf5h7kjnmqesgutwvy'],
+      w: ['238967debc01fg45kmstqrwxuvhjyznp', '14365h7k9dcfesgujnmqp0r2twvyx8zb'],
+    };
+    const border: { [key: string]: string[] } = {
+      n: ['prxz', 'bcfguvyz'],
+      s: ['028b', '0145hjnp'],
+      e: ['bcfguvyz', 'prxz'],
+      w: ['0145hjnp', '028b'],
+    };
+
+    const lastCh = geohash.slice(-1);    // last character of hash
+    let parent = geohash.slice(0, -1); // hash without last character
+
+    const type = geohash.length % 2;
+
+    // check for edge-cases which don't share common prefix
+    if (border[direction][type].indexOf(lastCh) !== -1 && parent !== '') {
+      parent = Geohash.adjacent(parent, direction);
+    }
+
+    // append letter for direction to parent
+    return parent + Geohash.base32.charAt(neighbour[direction][type].indexOf(lastCh));
+  }
+
+  static neighboursOf(geohash: string): GeohashNeighbours {
+    // based on https://github.com/chrisveness/latlon-geohash/blob/master/latlon-geohash.js
+    const northNeighbour = Geohash.adjacent(geohash, 'n');
+    const eastNeighbour = Geohash.adjacent(geohash, 'e')
+    const southNeighbour = Geohash.adjacent(geohash, 's')
+    const westNeighbour = Geohash.adjacent(geohash, 'w')
+
+    return {
+      n: northNeighbour,
+      ne: Geohash.adjacent(northNeighbour, 'e'),
+      e: eastNeighbour,
+      se: Geohash.adjacent(southNeighbour, 'e'),
+      s: southNeighbour,
+      sw: Geohash.adjacent(southNeighbour, 'w'),
+      w: westNeighbour,
+      nw: Geohash.adjacent(northNeighbour, 'w'),
+    };
   }
 }
 
